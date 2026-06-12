@@ -40,8 +40,6 @@ A Django-based authentication system that allows users to log in using phone-num
 * OTP resend is allowed only through POST requests.
 * OTP expires after a fixed time limit.
 
-```
-
 ## Environment Variables
 
 Create a `.env` file or configure these values in your Django settings:
