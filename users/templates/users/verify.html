@@ -1,0 +1,82 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verification</title>
+    <link rel="stylesheet" href="{% static 'users/verify.css' %}">
+</head>
+
+<body>
+    <div class="otp-container">
+
+        <!-- OTP Verify Form -->
+        <form method="POST">
+            {% csrf_token %}
+
+            {% if not telegram_connected %}
+            <a href="{{ telegram_link }}" target="_blank" class="telegram-btn">Connect Telegram For OTP</a>
+            {% else %}
+            <input type="text" name="otp" placeholder="Enter OTP" maxlength="6" required>
+            <button type="submit">Verify</button>
+            {% endif %}
+            <p id="timer-text" style="margin-top:10px; color:gray;">
+                Resend OTP in <span id="timer">{{remaining_time}}</span> seconds
+            </p>
+        </form>
+
+        {% if telegram_connected %}
+        <!-- Resend OTP Form -->
+        <form method="POST" action="{% url 'resend_otp' phone %}" id="resend-form" style="display:none;">
+            {% csrf_token %}
+            <button type="submit">Resend OTP</button>
+        </form>
+        {% endif %}
+        {% if form.errors %}
+        <p class="error">{{ form.errors.otp.0 }}</p>
+        {% endif %}
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+
+    </div>
+    <script>
+        let timerelement = document.getElementById('timer');
+        let timeLeft = timerelement ? parseInt(timerelement.textContent) : 0;
+
+        let timer = document.getElementById("timer");
+        let resendForm = document.getElementById("resend-form");
+        let timerText = document.getElementById("timer-text");
+
+        // Timer logic
+        if (timeLeft <= 0) {
+            if (timerText) timerText.style.display = "none";
+            if (resendForm) resendForm.style.display = "inline";
+        } else {
+            let countdown = setInterval(function () {
+                timeLeft--;
+                if (timer) timer.innerText = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    if (timerText) timerText.style.display = "none";
+                    if (resendForm) resendForm.style.display = "inline";
+                }
+            }, 1000);
+        }
+
+        //  Auto refresh when user comes back to tab
+        document.addEventListener("visibilitychange", function () {
+            if (document.visibilityState == "visible") {
+                if (timeLeft <= 0) {
+                    location.reload();
+                }
+            }
+        })
+    </script>
+
+</body>
+
+</html>
